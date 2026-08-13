@@ -1,0 +1,15 @@
+{
+  "session": "s-2026-08-13-deploy-demo",
+  "title": "Запуск приложения на сервере",
+  "description": "Пользователь показал: скопировать артефакт, распаковать, перезапустить службу, проверить health",
+  "host": "server1",
+  "owner": "команда",
+  "tags": ["deploy", "service", "health"],
+  "keywords": ["запуск", "приложение", "сервер", "deploy", "health"],
+  "actions": [
+    {"cmd": "scp build.tar.gz deploy@server1:/opt/app/", "desc": "Копируем артефакт на сервер"},
+    {"cmd": "ssh deploy@server1 \"cd /opt/app && tar xzf build.tar.gz\"", "desc": "Распаковываем артефакт"},
+    {"cmd": "ssh deploy@server1 \"systemctl restart app\"", "desc": "Перезапускаем службу"},
+    {"cmd": "curl -sf http://server1:8080/health", "desc": "Проверяем health-эндпоинт"}
+  ]
+}

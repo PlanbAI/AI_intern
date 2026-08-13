@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "description": "Golden set: размеченные запросы для оценки качества ретривала (precision@k, MRR). Наполняется по мере появления процедур. expected_procedure_ids заполняется после создания реальных процедур.",
+  "queries": [
+    {
+      "id": "G001",
+      "query": "запусти приложение на сервере2",
+      "intent": "deploy_and_start",
+      "expected_procedure_ids": ["P002"],
+      "expected_keywords": ["запуск", "приложение", "сервер", "deploy"]
+    },
+    {
+      "id": "G002",
+      "query": "проверь что в логах нет ошибок",
+      "intent": "read_only_logs_check",
+      "expected_procedure_ids": [],
+      "expected_keywords": ["логи", "ошибки", "log", "error"]
+    },
+    {
+      "id": "G003",
+      "query": "перезапусти службу на проде",
+      "intent": "restart_service",
+      "expected_procedure_ids": [],
+      "expected_keywords": ["перезапуск", "служба", "restart", "service"]
+    },
+    {
+      "id": "G004",
+      "query": "обнови конфиг nginx на staging",
+      "intent": "config_update",
+      "expected_procedure_ids": [],
+      "expected_keywords": ["конфиг", "nginx", "конфигурация"]
+    },
+    {
+      "id": "G005",
+      "query": "сделай бэкап базы данных",
+      "intent": "backup_database",
+      "expected_procedure_ids": [],
+      "expected_keywords": ["бэкап", "база", "backup", "database"]
+    }
+  ]
+}

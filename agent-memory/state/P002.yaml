@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "procedure_id": "P002",
+  "hosts": {
+    "server1": {
+      "bindings": {
+        "HOST": "server1",
+        "PORT": "8080",
+        "APP_DIR": "/opt/app"
+      },
+      "runs": 1,
+      "ok": 0,
+      "last_result": "failed",
+      "last_error": "шаг 1: 255",
+      "last_run_at": "2026-08-13T21:06:10+0300"
+    }
+  }
+}

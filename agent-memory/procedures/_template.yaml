@@ -1,0 +1,65 @@
+# Шаблон процедуры. Скопируй в procedures/P001.yaml и заполни.
+# Файлы, начинающиеся с "_", в индекс не попадают.
+schema_version: 1
+id: P001
+title: "Запуск приложения на сервере"
+description: "Скопировать артефакт, установить зависимости, запустить службу, проверить health-эндпоинт"
+tags: [deploy, service, health]
+keywords: [запуск, приложение, сервер, deploy, service, health-check]
+owner: "команда"
+status: active
+
+# Переменные: то, что отличается от сервера к серверу (обобщение сервер1 -> сервер2).
+# is_variable: false — константа (не спрашивать).
+parameters:
+  - name: HOST
+    type: host
+    is_variable: true
+    example: "server1"
+    note: "целевой сервер"
+  - name: PORT
+    type: port
+    is_variable: true
+    example: "8080"
+    note: "порт приложения"
+  - name: APP_DIR
+    type: path
+    is_variable: true
+    example: "/opt/app"
+    note: "директория развёртывания"
+  - name: LOG_LEVEL
+    type: text
+    is_variable: false
+    example: "info"
+
+steps:
+  - order: 1
+    description: "Скопировать артефакт на сервер"
+    command: "scp build.tar.gz deploy@{{HOST}}:{{APP_DIR}}/"
+    check:
+      type: exit_code
+      value: 0
+  - order: 2
+    description: "Распаковать артефакт"
+    command: "ssh deploy@{{HOST}} \"cd {{APP_DIR}} && tar xzf build.tar.gz\""
+  - order: 3
+    description: "Запустить службу"
+    command: "ssh deploy@{{HOST}} \"systemctl restart app\""
+  - order: 4
+    description: "Проверить health-эндпоинт"
+    command: "curl -sf http://{{HOST}}:{{PORT}}/health"
+    check:
+      type: http_status
+      value: 200
+
+dependencies: []
+
+# Глобальные критерии успеха — машинно проверяемые (verify.ps1 / verify.py).
+criteria:
+  - type: http_status
+    value: 200
+  - type: regex
+    value: ".*\"status\":\\s*\"ok\".*"
+
+timeout_seconds: 600
+max_steps: 20

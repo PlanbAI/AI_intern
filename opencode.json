@@ -1,0 +1,71 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git log*": "allow",
+      "git diff*": "allow",
+      "git branch*": "allow",
+      "git show*": "allow",
+      "git ls-files*": "allow",
+      "python scripts\\index.py*": "allow",
+      "python scripts\\log.py*": "allow",
+      "python scripts\\stats.py*": "allow",
+      "tail *": "allow",
+      "Get-Content*": "allow",
+      "grep *": "allow",
+      "Select-String*": "allow",
+      "ps *": "allow",
+      "Get-Process*": "allow",
+      "Get-Service*": "allow",
+      "df *": "allow",
+      "Get-PSDrive*": "allow",
+      "curl -sf *": "allow",
+      "curl -fsS *": "allow",
+      "Test-NetConnection*": "allow",
+      "Get-ChildItem*": "allow",
+      "rm *": "deny",
+      "rmdir *": "deny",
+      "del *": "deny",
+      "rd *": "deny",
+      "Remove-Item*": "deny",
+      "Remove-Item -Recurse*": "deny",
+      "Invoke-Expression*": "deny",
+      "iex *": "deny",
+      "base64 -d *": "deny",
+      "base64 --decode*": "deny",
+      "curl *|*": "deny",
+      "iwr *|*": "deny",
+      "wget *|*": "deny",
+      "format *": "deny",
+      "diskpart*": "deny",
+      "git rm*": "deny",
+      "git reset --hard*": "deny",
+      "git clean*": "deny",
+      "git push --force*": "deny",
+      "git push -f*": "deny"
+    },
+    "external_directory": {
+      "*": "ask",
+      "**/.ssh/**": "deny",
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "**/secrets/**": "deny",
+      "**/credentials*/**": "deny"
+    },
+    "read": {
+      "*": "allow",
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "**/.ssh/**": "deny",
+      "**/*.pem": "deny",
+      "**/*.key": "deny",
+      "**/secrets/**": "deny"
+    }
+  },
+  "tool_output": {
+    "max_lines": 300,
+    "max_bytes": 15000
+  }
+}

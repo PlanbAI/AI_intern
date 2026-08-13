@@ -1,0 +1,88 @@
+schema_version: 1
+id: P002
+title: Запуск приложения на сервере
+description: 'Пользователь показал: скопировать артефакт, распаковать, перезапустить
+  службу, проверить health'
+tags:
+- deploy
+- service
+- health
+keywords:
+- запуск
+- приложение
+- сервер
+- deploy
+- health
+owner: команда
+status: active
+parameters: []
+steps:
+- order: 1
+  description: Копируем артефакт на сервер
+  command: scp build.tar.gz deploy@server1:/opt/app/
+- order: 2
+  description: Распаковываем артефакт
+  command: ssh deploy@server1 "cd /opt/app && tar xzf build.tar.gz"
+- order: 3
+  description: Перезапускаем службу
+  command: ssh deploy@server1 "systemctl restart app"
+- order: 4
+  description: Проверяем health-эндпоинт
+  command: curl -sf http://server1:8080/health
+dependencies: []
+criteria: []
+timeout_seconds: 600
+max_steps: 20
+_draft_meta:
+  session: s-2026-08-13-deploy-demo
+  observed_host: server1
+  parameter_candidates:
+    suggested:
+    - token: '8080'
+      type: port
+      confidence: 0.9
+      reason: порт (:NNNN)
+      count: 1
+      commands:
+      - curl -sf http://server1:8080/health
+    - token: http://server1:8080/health
+      type: url
+      confidence: 0.9
+      reason: URL
+      count: 1
+      commands:
+      - curl -sf http://server1:8080/health
+    - token: deploy@server1
+      type: host
+      confidence: 0.85
+      reason: target user@host
+      count: 3
+      commands:
+      - scp build.tar.gz deploy@server1:/opt/app/
+      - ssh deploy@server1 "cd /opt/app && tar xzf build.tar.gz"
+      - ssh deploy@server1 "systemctl restart app"
+    - token: server1
+      type: host
+      confidence: 0.7
+      reason: похоже на имя хоста
+      count: 4
+      commands:
+      - scp build.tar.gz deploy@server1:/opt/app/
+      - ssh deploy@server1 "cd /opt/app && tar xzf build.tar.gz"
+      - ssh deploy@server1 "systemctl restart app"
+      - curl -sf http://server1:8080/health
+    - token: /opt/app/
+      type: path
+      confidence: 0.7
+      reason: путь
+      count: 1
+      commands:
+      - scp build.tar.gz deploy@server1:/opt/app/
+    - token: /opt/app
+      type: path
+      confidence: 0.7
+      reason: путь
+      count: 1
+      commands:
+      - ssh deploy@server1 "cd /opt/app && tar xzf build.tar.gz"
+    unsure: []

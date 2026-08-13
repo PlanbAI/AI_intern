@@ -1,0 +1,21 @@
+# Производные артефакты — пересобираются scripts/index.py
+agent-memory/index.json
+
+# Логи телеметрии — прикладные данные
+agent-memory/telemetry/*.jsonl
+
+# Временные файлы и блокировки
+*.tmp
+*.lock
+.lock
+temp/
+__pycache__/
+*.pyc
+
+# Секреты и локальные настройки — никогда не пушить
+.env
+.env.*
+!.env.example
+
+# Зависимости плагина (bun install создаёт при старте opencode)
+.opencode/node_modules/

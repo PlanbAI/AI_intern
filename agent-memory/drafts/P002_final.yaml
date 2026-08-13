@@ -1,0 +1,51 @@
+schema_version: 1
+id: P002
+title: "Запуск приложения на сервере"
+description: "Скопировать артефакт, распаковать, перезапустить службу, проверить health-эндпоинт"
+tags: [deploy, service, health]
+keywords: [запуск, приложение, сервер, deploy, health]
+owner: "команда"
+status: active
+parameters:
+  - name: HOST
+    type: host
+    is_variable: true
+    example: "server1"
+    note: "целевой сервер (user@host в ssh/scp)"
+  - name: PORT
+    type: port
+    is_variable: true
+    example: "8080"
+    note: "порт health-эндпоинта"
+  - name: APP_DIR
+    type: path
+    is_variable: true
+    example: "/opt/app"
+    note: "директория развёртывания"
+steps:
+  - order: 1
+    description: "Скопировать артефакт на сервер"
+    command: "scp build.tar.gz deploy@{{HOST}}:{{APP_DIR}}/"
+    check:
+      type: exit_code
+      value: 0
+  - order: 2
+    description: "Распаковать артефакт"
+    command: "ssh deploy@{{HOST}} \"cd {{APP_DIR}} && tar xzf build.tar.gz\""
+  - order: 3
+    description: "Перезапустить службу"
+    command: "ssh deploy@{{HOST}} \"systemctl restart app\""
+  - order: 4
+    description: "Проверить health-эндпоинт"
+    command: "curl -sf http://{{HOST}}:{{PORT}}/health"
+    check:
+      type: http_status
+      value: 200
+dependencies: []
+criteria:
+  - type: http_status
+    value: 200
+  - type: exit_code
+    value: 0
+timeout_seconds: 600
+max_steps: 20

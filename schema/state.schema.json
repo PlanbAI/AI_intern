@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agent-intern.local/schema/state.schema.json",
+  "title": "ProcedureState",
+  "description": "Мутабельное состояние процедуры: статистика прогонов и биндинги параметров per-host",
+  "type": "object",
+  "required": ["schema_version", "procedure_id", "hosts"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "procedure_id": { "type": "string", "pattern": "^P[0-9]{3,}$" },
+    "hosts": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "object",
+          "required": ["runs", "ok"],
+          "additionalProperties": false,
+          "properties": {
+            "bindings": { "type": "object", "default": {} },
+            "runs": { "type": "integer", "minimum": 0 },
+            "ok": { "type": "integer", "minimum": 0 },
+            "last_result": { "enum": ["ok", "failed", "unknown"], "default": "unknown" },
+            "last_error": { "type": "string", "default": "" },
+            "last_run_at": { "type": "string", "format": "date-time", "default": "" }
+          }
+        }
+      }
+    }
+  }
+}
