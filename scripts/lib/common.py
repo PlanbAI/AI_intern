@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from pathlib import Path
 
@@ -17,6 +18,27 @@ TELEMETRY_DIR = MEMORY_DIR / "telemetry"
 INDEX_FILE = MEMORY_DIR / "index.json"
 LOCK_FILE = MEMORY_DIR / ".lock"
 SCHEMA_VERSION = 1
+
+# Стоп-слова (шум: предлоги, союзы, местоимения) — исключаются из индекса и запросов.
+STOPWORDS = frozenset("""
+в во на с со и а но или не ни по за у из к ко о об от до для при без под над
+между что как так это эти этот эта его её ее их им мне меня тебе тебя нас вам
+вас все всё весь бы же ли то чем чтобы если когда только ещё еще уже даже ну
+вот тут там здесь потом затем тоже также какой какая какие какое разве около
+the a an and or but of to for in on with at by from is are was were be been it
+its this that these those as not no do does did have has had will would can
+could should may might must i you he she we they me him her us them my your our
+their then than so if when what which who whom
+""".split())
+
+
+def tokenize(text: str) -> set[str]:
+    """Токены для ретривала: нижний регистр, без пунктуации и стоп-слов."""
+    return {
+        w.lower()
+        for w in re.findall(r"[a-zа-яё0-9]+", text or "", re.IGNORECASE)
+        if w.lower() not in STOPWORDS
+    }
 
 
 def now_iso() -> str:

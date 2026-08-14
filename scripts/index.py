@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import math
-import re
 import sys
 from collections import Counter
 
@@ -20,13 +19,12 @@ from common import (  # noqa: E402
     iter_procedures,
     now_iso,
     read_yaml,
+    tokenize,
 )
-
-WORD_RE = re.compile(r"[a-zа-яё0-9]+", re.IGNORECASE)
 
 
 def terms_of(text: str) -> list[str]:
-    return [w.lower() for w in WORD_RE.findall(text or "")]
+    return list(tokenize(text))
 
 
 def build_index() -> dict:

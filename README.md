@@ -148,7 +148,13 @@ P1.
 3. `python scripts/index.py` — rebuild the index.
 4. Log the first event: `python scripts/log.py --session test --event learn --status ok`.
 5. Check the summary: `python scripts/stats.py`.
-6. Load the intern-agent skill when working with memory.
+6. Procedures run **by meaning, not by id**: ask the intern «are there any
+   meetings soon?» and it will find the calendar procedure via
+   `retrieve.py --query "<your phrase>"` (or run the retrieval yourself
+   to preview candidates). If several procedures fit, the intern shows a
+   numbered list sorted by confidence and waits for your choice —
+   the default is option 1 (most likely); empty answer means «1».
+7. Load the intern-agent skill when working with memory.
 
 ## Decisions made by the committee
 

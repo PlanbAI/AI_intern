@@ -2,9 +2,12 @@
 
 Ранжирование: TF-IDF-термы из index.json + буст за совпадение keywords (0.3)
 и тегов (0.2). Уверенность = нормированный на максимум балл (0..1):
-  >= 0.70 — высокая (кандидат для P0, всё равно показать пользователю)
-  0.40–0.70 — средняя (показать кандидатов, требуется подтверждение)
-  <  0.40 — низкая (вероятно, новая задача — режим захвата)
+  >= 0.40 — «подходящий» кандидат (вариант для выбора/исполнения)
+  <  0.40 — слабый (в список выбора не входит; вероятно, новая задача)
+
+Неоднозначность (ambiguous): подходящих кандидатов >= 2 → вывести ВСЕ
+варианты, отсортированные по убыванию уверенности, с номерами; выбор по
+умолчанию — вариант 1 (самый вероятный).
 
 С host-статистикой (--host): предупреждение, если на этом хосте процедура
 уже падала (runs >= 3 и ok/runs < 0.66).
@@ -17,30 +20,44 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 
-from common import INDEX_FILE, STATE_DIR, now_iso, read_json, read_yaml  # noqa: E402
+from common import (  # noqa: E402
+    INDEX_FILE,
+    STATE_DIR,
+    now_iso,
+    read_json,
+    read_yaml,
+    tokenize,
+)
 
-WORD_RE = re.compile(r"[a-zа-яё0-9]+", re.IGNORECASE)
 HIGH = 0.70
 MEDIUM = 0.40
+# Абсолютный минимум сырого скора для «подходящего» кандидата: защита от
+# нормировки, когда единственный кандидат с мизерным совпадением получает 1.00.
+SCORE_FLOOR = 0.15
 KEYWORD_BOOST = 0.30
 TAG_BOOST = 0.20
 
 
-def tokenize(text: str) -> set[str]:
-    return {w.lower() for w in WORD_RE.findall(text or "")}
+def _kw_matches(kw: str, qterms: set[str]) -> bool:
+    """Точное или префиксное совпадение (русская морфология): «встреч» → «встреча»."""
+    for t in qterms:
+        if len(kw) < 4 or len(t) < 4:
+            continue
+        if kw.startswith(t) or t.startswith(kw):
+            return True
+    return False
 
 
 def score_procedure(proc: dict, qterms: set[str]) -> tuple[float, set[str], set[str]]:
     score = 0.0
     for t in qterms:
         score += proc.get("terms", {}).get(t, 0.0)
-    kw_hits = qterms & set(proc.get("keywords", []))
+    kw_hits = {k for k in set(proc.get("keywords", [])) if _kw_matches(k, qterms)}
     tag_hits = qterms & set(proc.get("tags", []))
     score += KEYWORD_BOOST * len(kw_hits) + TAG_BOOST * len(tag_hits)
     return score, kw_hits, tag_hits
@@ -106,8 +123,15 @@ def retrieve(query: str, host: str = "", top_k: int = 5, threshold: float = 0.0)
         if host_data:
             cand["host"] = host_data
         candidates.append(cand)
+    # Нумерация только «подходящих»: уверенность >= MEDIUM И сырой скор >= FLOOR.
+    for i, cand in enumerate(candidates, 1):
+        cand["num"] = i if (cand["confidence"] >= MEDIUM
+                            and cand["score"] >= SCORE_FLOOR) else None
+    choosable = [c for c in candidates if c["num"]]
     return {"query": query, "host": host, "generated_at": now_iso(),
-            "candidates": candidates}
+            "candidates": candidates,
+            "ambiguous": len(choosable) >= 2,
+            "default_id": choosable[0]["id"] if choosable else None}
 
 
 def main() -> int:
@@ -131,6 +155,7 @@ def main() -> int:
         print("Похожих процедур не найдено → это новая задача (режим захвата).")
         return 0
     print(f"Кандидаты по запросу: «{args.query}»" + (f" (хост: {args.host})" if args.host else ""))
+    weak = 0
     for c in result["candidates"]:
         host_note = ""
         if c.get("host"):
@@ -139,12 +164,24 @@ def main() -> int:
             if h.get("warn"):
                 host_note += " ⚠️ БЫЛИ НЕУДАЧИ"
         notes = (" | " + "; ".join(c["notes"])) if c.get("notes") else ""
-        print(f'  {c["confidence"]:.2f} [{c["level"]:<6}] {c["id"]} '
-              f'{c["title"]} (статус: {c["status"]}){host_note}{notes}')
+        if c.get("num") is None:
+            weak += 1
+            continue
+        default = "  [по умолчанию]" if c["num"] == 1 else ""
+        print(f'  {c["num"]}. {c["confidence"]:.2f} [{c["level"]:<6}] {c["id"]} '
+              f'{c["title"]} (статус: {c["status"]}){default}{host_note}{notes}')
         if c["keywords_hit"]:
             print(f'       keywords: {", ".join(c["keywords_hit"])}')
-    print("\nПороги: >=0.70 высокая (P0 допустим, но показать), 0.40–0.70 средняя, "
-          "<0.40 новая задача.")
+    if weak:
+        print(f"  …и {weak} слабых совпадений ниже {MEDIUM:.2f} (не входят в выбор).")
+    if result["ambiguous"]:
+        print(f"\nНеоднозначность: подходит несколько вариантов. "
+              f"Выберите номер (Enter = вариант 1: {result['default_id']}).")
+    elif result["default_id"]:
+        print(f"\nПодходящий вариант один: {result['default_id']}. "
+              f"Подтвердите выполнение (или Enter).")
+    else:
+        print("\nПодходящих вариантов (>= 0.40) нет → это новая задача (режим захвата).")
     return 0
 
 
