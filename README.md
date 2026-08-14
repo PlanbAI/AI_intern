@@ -15,26 +15,47 @@ discussions: analyst, engineer, system architect, AI specialist).
 This is a template repository: clone it and work in your own copy
 (procedural memory is your data, versioned with git in your repository).
 
-1. Requirements: opencode (Desktop or CLI), Python 3.11+ with `pyyaml`
-   and `jsonschema`, git. For type-checking the plugin — node/npx
-   (optional).
+1. Requirements: git, Python 3.11+ (with pip), Node.js + npm (for the
+   browser MCP), Google Chrome (optional but recommended). opencode —
+   Desktop or CLI.
 2. `git clone https://github.com/PlanbAI/AI_intern.git <project-folder>`
-3. `cd <project-folder>` and launch opencode **from this exact folder** —
-   otherwise the project config, the guard.ts plugin, the agent and the
-   skill will not load (opencode reads `opencode.json` and `.opencode/`
-   from the working directory).
-4. Select the **intern** agent (Tab, or in the agent list).
-5. Verify the install: `python scripts/index.py` → «index rebuilt:
-   2 procedures», and `python scripts/stats.py` (summary + procedure
+3. `cd <project-folder>` and run the one-shot setup script:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File setup.ps1
+   ```
+   It checks the environment, installs Python deps (pyyaml, jsonschema),
+   installs `@playwright/mcp` (or falls back to npx), registers the MCP
+   server in the **global** opencode config (`~/.config/opencode/
+   opencode.jsonc`) with machine-specific paths and a persistent browser
+   profile `.opencode/browser-profile`, copies the agent to the legacy
+   `.opencode/agent/` path (Desktop 1.18.x reads it, not `.opencode/agents/`),
+   creates a desktop shortcut "OpenCode - <project>", and rebuilds the
+   index. Idempotent — safe to re-run.
+4. Launch opencode **from this exact folder** (use the desktop shortcut,
+   or pass the folder path to OpenCode.exe) — otherwise the project
+   config, the guard.ts plugin, the agent and the skill will not load.
+5. Select the **intern** agent (Tab, or in the agent list).
+6. Verify the install: `python scripts/index.py` → «index rebuilt:
+   3 procedures», and `python scripts/stats.py` (summary + procedure
    metrics).
-6. Updating the template: `git pull` (conflicts are possible if you
+7. Updating the template: `git pull` (conflicts are possible if you
    changed template files; your own procedures in
    `agent-memory/procedures/` never conflict).
+8. First run of a browser procedure (steps with `type: agent`, e.g.
+   P003): the MCP server uses a **separate** Chrome profile
+   (`.opencode/browser-profile/`, gitignored — cookies!). The first
+   Google login is manual, sessions persist afterwards. The permission
+   rule `"playwright_*": "ask"` is set; the guard.ts plugin denies
+   `playwright_browser_evaluate`/`run_code` (arbitrary JS).
 
 Memory is per-project: every project has its own `agent-memory/` —
 procedures of one project never mix with another. To move procedures
 between projects, copy `agent-memory/procedures/*.yaml`
 (+ `state/*.yaml`) and rebuild the index.
+
+Quick user guide: [HELP.md](HELP.md) — in chat run `/intern`
+(`.opencode/commands/intern.md`), optionally with a section name:
+`/intern capture`.
 
 ## Structure
 
@@ -48,8 +69,12 @@ agent-intern/
 │  ├─ golden_set.json          #   labeled queries for retrieval metrics
 │  └─ index.json               #   DERIVED artifact (rebuilt by scripts/index.py)
 ├─ .opencode/skills/intern-agent/SKILL.md   # the agent's operating manual
+├─ .opencode/agents/intern.md               # agent (documented path)
+├─ .opencode/agent/intern.md                # agent (legacy path, Desktop 1.18.x)
 ├─ schema/                     # JSON Schemas for procedures and state
-└─ scripts/                    # Python scripts (pyyaml available; PS 5.1 can't parse YAML)
+├─ scripts/                    # Python scripts (pyyaml available; PS 5.1 can't parse YAML)
+├─ setup.ps1                   # one-shot environment setup for a new machine
+└─ requirements.txt            # Python deps (pyyaml, jsonschema)
 ```
 
 ## Scripts
@@ -66,6 +91,7 @@ agent-intern/
 | `python scripts/eval-retrieval.py` | retrieval metrics on the golden set: precision@k, MRR |
 | `python scripts/classify.py --command "..." --procedure P002` | P0/P1/P2 level by rules (P2 signals: scp, systemctl, services, permissions, disks; P0 — allowlist only) |
 | `python scripts/run_procedure.py --procedure P002 --host <host> --bindings "HOST=x" --approve-all` | procedure execution: bindings, step/time limits, step.check, criteria, state update, telemetry |
+| `python scripts/mark_result.py --procedure P003 --host local --ok\|--fail [--error "..."]` | record the outcome of a procedure executed by the agent itself (`type: agent` steps via MCP; run_procedure refuses such procedures, exit 3) |
 | `python scripts/verify-procedure.py --procedure P002 --host <host> [--check-types ...] [--file <log>]` | independent criteria verification after a procedure (state untouched) |
 | `python scripts/verify.py --type exit_code\|http_status\|regex --value <v> --command/--url/--text` | machine check of a criterion (not LLM), exit 0/1/2 |
 

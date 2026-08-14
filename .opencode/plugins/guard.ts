@@ -107,6 +107,16 @@ export const GuardPlugin: Plugin = async () => {
           throw new Error("[guard] Команда обращается к чувствительному пути (.ssh/.env/secrets). Запрещено.")
         }
       }
+      if (input.tool.startsWith("playwright_") || input.tool.startsWith("chrome_")) {
+        // MCP-инструменты браузера (playwright-mcp): произвольный JS в браузере запрещён
+        const mcpTool = input.tool
+        if (/(?:playwright|chrome)_browser_(evaluate|run_code|run_code_unsafe)$/.test(mcpTool)) {
+          throw new Error(
+            "[guard] Инструмент браузера " + mcpTool +
+            " (произвольный JS) запрещён плагином безопасности."
+          )
+        }
+      }
       if (input.tool === "read") {
         const fp = String(output.args?.filePath ?? "")
         if (SENSITIVE_PATH_RE.test(fp)) {
@@ -115,7 +125,8 @@ export const GuardPlugin: Plugin = async () => {
       }
     },
     "tool.execute.after": async (input, output) => {
-      if (input.tool === "bash" || input.tool === "read") {
+      if (input.tool === "bash" || input.tool === "read" ||
+          input.tool.startsWith("playwright_") || input.tool.startsWith("chrome_")) {
         const clean = sanitizeOutput(output.output)
         if (clean !== String(output.output ?? "")) {
           output.output = clean

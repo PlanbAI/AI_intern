@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "procedure_id": "P003",
+  "hosts": {
+    "local": {
+      "bindings": {},
+      "runs": 3,
+      "ok": 2,
+      "last_result": "ok",
+      "last_error": "",
+      "last_run_at": "2026-08-13T23:48:57+0300"
+    }
+  }
+}

@@ -154,6 +154,19 @@ Few-shot-пример (домен: развёртывание, ssh/scp, systemct
 Стоп-вопросы обязательны при: непонятном шаге, отсутствующем значении параметра,
 неоднозначном критерии, любом `unsure` в разметке.
 
+### 3.5. Agent-шаги (MCP/браузер)
+
+- Шаг с `type: agent` вместо команды содержит `instructions` — его исполняет интерн
+  сам через MCP-инструменты (`playwright_*`), а не run_procedure.py.
+- Каждый agent-шаг должен получать подтверждение пользователя (guard + permission `ask`).
+- Логин/пароли вводит только пользователь; переписка в память не пишется.
+- После исполнения ВСЕХ шагов зафиксируй результат:
+  `python scripts/mark_result.py --procedure <id> --host <хост> --ok|--fail [--error "..."]`
+  (пишет state runs/ok и телеметрию; для agent-процедур хост — `local`, если иное не указано).
+- Критерии: если в процедуре нет `criteria` (агентный ответ не машиночитаем) —
+  результат фиксируй по факту ответа пользователю; verify-procedure честно сообщит,
+  что верифицировать нечего.
+
 ## 4. Обновление процедур
 
 При модификации: не переписывай молча — новая версия процедуры (status), инструкция
@@ -177,5 +190,7 @@ Few-shot-пример (домен: развёртывание, ssh/scp, systemct
 - `python scripts/verify.py --type exit_code|http_status|regex --value <v> ...` — машинная проверка
 - `python scripts/run_procedure.py --procedure <id> --host <хост> --bindings "A=x" --approve-all`
   — исполнение процедуры (лимиты, step.check, criteria, state, телеметрия); подтверждения в чате!
+- `python scripts/mark_result.py --procedure <id> --host <хост> --ok|--fail [--error "..."]`
+  — фиксация результата процедуры с agent-шагами (исполнена в чате через MCP)
 - Схемы: `schema/procedure.schema.json`, `schema/state.schema.json`
 - Инструкции людям: `agent-memory/instructions/<id>.md`

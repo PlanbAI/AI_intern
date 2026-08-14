@@ -17,5 +17,8 @@ __pycache__/
 .env.*
 !.env.example
 
+# Профиль браузера playwright-mcp (cookies/сессии — секреты!)
+.opencode/browser-profile/
+
 # Зависимости плагина (bun install создаёт при старте opencode)
 .opencode/node_modules/

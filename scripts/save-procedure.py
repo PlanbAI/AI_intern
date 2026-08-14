@@ -93,7 +93,11 @@ def render_instruction(proc: dict) -> str:
     lines.append("\n## Шаги\n")
     for step in proc.get("steps", []):
         lines.append(f"### {step['order']}. {step['description']}\n")
-        lines.append("```\n" + step.get("command", "") + "\n```")
+        if step.get("type", "bash") == "agent":
+            lines.append("_Исполняет агент (инструменты браузера/MCP, с подтверждением):_\n")
+            lines.append(f"> {step.get('instructions', '')}")
+        else:
+            lines.append("```\n" + step.get("command", "") + "\n```")
         if step.get("check"):
             c = step["check"]
             lines.append(f"\n_Проверка: {c['type']} → {c['value']}_")

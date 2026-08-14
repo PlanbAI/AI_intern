@@ -201,6 +201,14 @@ def main() -> int:
     # подстановка параметров и проверка полноты
     rendered: list[tuple[dict, str]] = []
     all_missing: list[str] = []
+    agent_steps = [s for s in steps if s.get("type", "bash") == "agent"]
+    if agent_steps:
+        print(f"Процедура содержит agent-шаги ({len(agent_steps)} шт.) — их исполняет "
+              f"интерн в чате (MCP/браузер), а не этот раннер. Исполните шаги вручную и "
+              f"зафиксируйте результат: python scripts/mark_result.py "
+              f"--procedure {proc.get('id')} --host {args.host} --ok|--fail",
+              file=sys.stderr)
+        return 3
     for s in steps:
         cmd, missing = substitute(s.get("command", ""), bindings)
         all_missing.extend(missing)

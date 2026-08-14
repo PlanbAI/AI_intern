@@ -1,0 +1,41 @@
+schema_version: 1
+id: P003
+title: Проверка календаря на ближайший час
+description: Открыть Google Calendar (Playwright MCP) и определить, есть ли встреча
+  в ближайший час. Переменных нет; критерий — ответ интерна «встреча есть/нет».
+tags:
+- calendar
+- google
+- check
+keywords:
+- календарь
+- встреча
+- calendar
+- meeting
+- google
+- расписание
+owner: PlanbAI
+status: active
+parameters: []
+steps:
+- order: 1
+  type: agent
+  description: Открыть Google Calendar
+  instructions: playwright_browser_navigate на https://calendar.google.com/calendar/r,
+    дождись загрузки страницы (playwright_browser_snapshot). Если открылась страница
+    входа в Google — сообщи пользователю, что нужно войти (пароль вводит только пользователь),
+    и дождись входа.
+  requires_confirmation: true
+- order: 2
+  type: agent
+  description: Определить наличие встреч в ближайший час
+  instructions: 'playwright_browser_snapshot текущего вида календаря. Определи текущее
+    системное время (не время со страницы). Проверь, есть ли события в интервале [сейчас;
+    +60 минут]: заголовки/блоки событий на шкале времени. Итоговый ответ пользователю
+    строго одного из двух видов: «ВСТРЕЧА ЕСТЬ: <название>» либо «ВСТРЕЧ НЕТ».'
+dependencies: []
+criteria: []
+timeout_seconds: 300
+max_steps: 10
+created_at: 2026-08-13T23:47:46+0300
+updated_at: 2026-08-13T23:47:46+0300
