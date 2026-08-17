@@ -15,22 +15,26 @@ discussions: analyst, engineer, system architect, AI specialist).
 This is a template repository: clone it and work in your own copy
 (procedural memory is your data, versioned with git in your repository).
 
-1. Requirements: git, Python 3.11+ (with pip), Node.js + npm (for the
-   browser MCP), Google Chrome (optional but recommended). opencode —
-   Desktop or CLI.
+1. Requirements: **Windows 10/11 with winget** (built-in) and internet.
+   Everything else — git, Python 3.11+, Node.js, Google Chrome and
+   OpenCode Desktop — the setup script installs automatically
+   (UAC prompts may appear). On Linux/macOS install them manually
+   (setup.ps1 is Windows-only).
 2. `git clone https://github.com/PlanbAI/AI_intern.git <project-folder>`
 3. `cd <project-folder>` and run the one-shot setup script:
    ```powershell
    powershell -ExecutionPolicy Bypass -File setup.ps1
    ```
-   It checks the environment, installs Python deps (pyyaml, jsonschema),
+   It installs missing dependencies via winget (with fallback to
+   official installers), installs Python deps (pyyaml, jsonschema),
    installs `@playwright/mcp` (or falls back to npx), registers the MCP
    server in the **global** opencode config (`~/.config/opencode/
    opencode.jsonc`) with machine-specific paths and a persistent browser
    profile `.opencode/browser-profile`, copies the agent to the legacy
    `.opencode/agent/` path (Desktop 1.18.x reads it, not `.opencode/agents/`),
    creates a desktop shortcut "OpenCode - <project>", and rebuilds the
-   index. Idempotent — safe to re-run.
+   index. Idempotent — safe to re-run. Use `-SkipInstall` to only check
+   and configure without installing anything.
 4. Launch opencode **from this exact folder** (use the desktop shortcut,
    or pass the folder path to OpenCode.exe) — otherwise the project
    config, the guard.ts plugin, the agent and the skill will not load.
